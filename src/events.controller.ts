@@ -25,6 +25,15 @@ export class EventController {
     return await this.repository.find();
   }
 
+  @Get('/practice')
+  async find() {
+    return await this.repository.find({
+      where: {
+        id: 3,
+      },
+    });
+  }
+
   @Get(':id')
   async findOne(@Param('id') id) {
     return await this.repository.findOne(id);
