@@ -1,3 +1,4 @@
+import { AuthGuardJwt } from './../auth/auth-guard.jwt';
 import { Event } from './event.entity';
 import {
   Body,
@@ -10,6 +11,7 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateEventDto } from './input/create-event.dto';
 import { UpdateEventDto } from './input/update-event.dto';
@@ -17,6 +19,8 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Attendee } from './attendee.entity';
 import { EventsService } from './events.service';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+import { User } from 'src/auth/user.entity';
 
 @Controller('/events')
 export class EventController {
@@ -41,15 +45,15 @@ export class EventController {
     return events;
   }
 
-  @Get('practice2')
-  async practice2() {
-    return await this.repository.findOne({
-      where: {
-        id: 1,
-      },
-      relations: ['attendees'],
-    });
-  }
+  // @Get('practice2')
+  // async practice2() {
+  //   return await this.repository.findOne({
+  //     where: {
+  //       id: 1,
+  //     },
+  //     relations: ['attendees'],
+  //   });
+  // }
 
   // @Get('/practice')
   // async find() {
@@ -71,11 +75,9 @@ export class EventController {
   }
 
   @Post()
-  async create(@Body() input: CreateEventDto) {
-    return await this.repository.save({
-      ...input,
-      when: new Date(input.when),
-    });
+  @UseGuards(AuthGuardJwt)
+  async create(@Body() input: CreateEventDto, @CurrentUser() user: User) {
+    return await this.eventsService.createEvent(input, user);
   }
 
   @Patch(':id')
