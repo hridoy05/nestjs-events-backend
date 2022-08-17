@@ -7,6 +7,12 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+export enum AttendeeAnswerEnum {
+  Accepted = 1,
+  Maybe,
+  Rejected,
+}
+
 @Entity()
 export class Attendee {
   @PrimaryGeneratedColumn()
@@ -16,8 +22,14 @@ export class Attendee {
   name: string;
 
   @ManyToOne(() => Event, (event) => event.attendees, {
-    nullable: false,
+    nullable: true,
   })
   @JoinColumn()
   event: Event;
+
+  @Column('enum', {
+    enum: AttendeeAnswerEnum,
+    default: AttendeeAnswerEnum.Accepted,
+  })
+  answer: AttendeeAnswerEnum;
 }
