@@ -10,6 +10,7 @@ import {
   Logger,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -28,15 +29,14 @@ import { ListEvents } from './input/list.events';
 
 @Controller('/events')
 @SerializeOptions({ strategy: 'excludeAll' })
-export class EventController {
-  private readonly logger = new Logger(EventController.name);
+export class EventsController {
+  private readonly logger = new Logger(EventsController.name);
   constructor(private readonly eventsService: EventsService) {}
 
   @Get()
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseInterceptors(ClassSerializerInterceptor)
   async findAll(@Query() filter: ListEvents) {
-    this.logger.log(`Hit the findAll route`);
     const events =
       await this.eventsService.getEventsWithAttendeeCountFilteredPaginated(
         filter,
@@ -72,7 +72,7 @@ export class EventController {
   @UseInterceptors(ClassSerializerInterceptor)
   async findOne(@Param('id') id) {
     // return await this.repository.findOneBy({ id });
-    const event = this.eventsService.getEvent(id);
+    const event = this.eventsService.findOne(id);
     if (!event) {
       throw new NotFoundException();
     }
@@ -90,26 +90,11 @@ export class EventController {
   @UseGuards(AuthGuardJwt)
   @UseInterceptors(ClassSerializerInterceptor)
   async update(
-    @Param('id') id,
+    @Param('id', ParseIntPipe) id,
     @Body() input: UpdateEventDto,
     @CurrentUser() user: User,
   ) {
-    const event = await this.eventsService.getEvent(id);
-
-    if (event.organizerId !== user.id) {
-      throw new ForbiddenException(
-        null,
-        `You are not authoririzes to  change this event`,
-      );
-    }
-
-    return this.eventsService.updateEvent(event, input);
-  }
-  @Delete(':id')
-  @UseGuards(AuthGuardJwt)
-  @HttpCode(204)
-  async remove(@Param('id') id, @CurrentUser() user: User) {
-    const event = await this.eventsService.getEvent(id);
+    const event = await this.eventsService.findOne(id);
 
     if (!event) {
       throw new NotFoundException();
@@ -118,9 +103,29 @@ export class EventController {
     if (event.organizerId !== user.id) {
       throw new ForbiddenException(
         null,
-        `You are not authoririzes to remove this event`,
+        `You are not authorized to change this event`,
       );
     }
+
+    return await this.eventsService.updateEvent(event, input);
+  }
+  @Delete(':id')
+  @UseGuards(AuthGuardJwt)
+  @HttpCode(204)
+  async remove(@Param('id', ParseIntPipe) id, @CurrentUser() user: User) {
+    const event = await this.eventsService.findOne(id);
+
+    if (!event) {
+      throw new NotFoundException();
+    }
+
+    if (event.organizerId !== user.id) {
+      throw new ForbiddenException(
+        null,
+        `You are not authorized to remove this event`,
+      );
+    }
+
     await this.eventsService.deleteEvent(id);
   }
 }

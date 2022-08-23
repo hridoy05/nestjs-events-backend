@@ -7,6 +7,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Expose } from 'class-transformer';
 
 export enum AttendeeAnswerEnum {
   Accepted = 1,
@@ -17,10 +18,8 @@ export enum AttendeeAnswerEnum {
 @Entity()
 export class Attendee {
   @PrimaryGeneratedColumn()
+  @Expose()
   id: number;
-
-  @Column()
-  name: string;
 
   @ManyToOne(() => Event, (event) => event.attendees, {
     nullable: true,
@@ -35,9 +34,11 @@ export class Attendee {
     enum: AttendeeAnswerEnum,
     default: AttendeeAnswerEnum.Accepted,
   })
+  @Expose()
   answer: AttendeeAnswerEnum;
 
   @ManyToOne(() => User, (user) => user.attended)
+  @Expose()
   user: User;
 
   @Column()
