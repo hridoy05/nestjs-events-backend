@@ -23,8 +23,8 @@ import {
 import { CreateEventDto } from './input/create-event.dto';
 import { UpdateEventDto } from './input/update-event.dto';
 import { EventsService } from './events.service';
-import { CurrentUser } from 'src/auth/current-user.decorator';
-import { User } from 'src/auth/user.entity';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { User } from '../auth/user.entity';
 import { ListEvents } from './input/list.events';
 
 @Controller('/events')
